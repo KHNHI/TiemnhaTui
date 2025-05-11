@@ -38,7 +38,35 @@ const productSchema = new Schema({
   materials: {
     type: [String],
     required: true
-  }
+  },
+  
+tags: { 
+    type: [String], 
+    required: false 
+},
+pattern: { 
+    type: [String], 
+    required: false },
+dateAdded: { type: Date, default: Date.now },
+isSale: {
+  status: { type: Boolean, default: false },
+  percent: { type: Number, default: 0 },
+  end: { type: Date }
+},
+ofSellers: {
+  userId: { type: Schema.Types.ObjectId, required: true, ref: "User" },
+  name: String
+},
+labels: { type: String, default: "Shiro" },
+buyCounts: { type: Number, default: 0 },
+viewCounts: { type: Number, default: 0 },
+rating: {
+  byUser: String,
+  content: String,
+  star: Number
+},
+index: { type: Number, default: 0 }
+
 });
 
 const Product = mongoose.model("Product", productSchema);
