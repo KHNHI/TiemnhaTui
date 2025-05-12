@@ -13,8 +13,8 @@ const productCategorySchema = new Schema({
     required: true
   }
 });
-//Thể loại sản phẩm
-// tên thể loại sản phẩm (áo thun, áo hoodie, ...)
+// thể loại sản phẩm
+//xử lý commit
 const productCategory = mongoose.model(
   "productCategory",
   productCategorySchema
