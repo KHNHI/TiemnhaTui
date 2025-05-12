@@ -259,3 +259,141 @@ exports.postComment = (req, res, next) => {
   });
   res.redirect("back");
 };
+
+exports.getCart = (req, res, next) => {
+  var cartProduct;
+  if (!req.session.cart) {
+    cartProduct = null;
+  } else {
+    var cart = new Cart(req.session.cart);
+    cartProduct = cart.generateArray();
+  }
+  res.render("shopping-cart", {
+    title: "Giỏ hàng",
+    user: req.user,
+    cartProduct: cartProduct
+  });
+};
+
+exports.addToCart = (req, res, next) => {
+  var prodId = req.params.productId;
+  var cart = new Cart(req.session.cart ? req.session.cart : {});
+  Products.findById(prodId, (err, product) => {
+    if (err) {
+      return res.redirect("back");
+    }
+    cart.add(product, prodId);
+    req.session.cart = cart;
+    if (req.user) {
+      req.user.cart = cart;
+      req.user.save();
+    }
+    res.redirect("back");
+  });
+};
+
+exports.modifyCart = (req, res, next) => {
+  var prodId = req.query.id;
+  var qty = req.query.qty;
+  if (qty == 0) {
+    return res.redirect("back");
+  }
+  var cart = new Cart(req.session.cart ? req.session.cart : {});
+  Products.findById(prodId, (err, product) => {
+    if (err) {
+      return res.redirect("back");
+    }
+    cart.changeQty(product, prodId, qty);
+    req.session.cart = cart;
+    if (req.user) {
+      req.user.cart = cart;
+      req.user.save();
+    }
+    res.redirect("back");
+  });
+};
+
+exports.getDeleteCart = (req, res, next) => {
+  req.session.cart = null;
+  if (req.user) {
+    req.user.cart = {};
+    req.user.save();
+  }
+  res.redirect("back");
+};
+
+exports.getDeleteItem = (req, res, next) => {
+  var prodId = req.params.productId;
+  var cart = new Cart(req.session.cart ? req.session.cart : {});
+  Products.findById(prodId, (err, product) => {
+    if (err) {
+      return res.redirect("back");
+    }
+    cart.deleteItem(prodId);
+    req.session.cart = cart;
+    if (req.user) {
+      req.user.cart = cart;
+      req.user.save();
+    }
+    console.log(req.session.cart);
+    res.redirect("back");
+  });
+};
+
+exports.addOrder = (req, res, next) => {
+  var cartProduct;
+  if (!req.session.cart) {
+    cartProduct = null;
+  } else {
+    var cart = new Cart(req.session.cart);
+    cartProduct = cart.generateArray();
+  }
+  res.render("add-address", {
+    title: "Thông tin giao hàng",
+    user: req.user,
+    cartProduct: cartProduct
+  });
+};
+
+exports.postAddOrder = async (req, res, next) => {
+  console.log(req.session.cart);
+  if (req.session.cart.totalQty) {
+    var order = new Order({
+      user: req.user,
+      cart: req.session.cart,
+      address: req.body.address,
+      phoneNumber: req.body.phone
+    });
+
+    for (var id in req.session.cart.items) {
+      await Products.findOne({ _id: id })
+        .then(product => {
+          product.buyCounts += parseInt(req.session.cart.items[id].qty);
+          product.save();
+        })
+        .catch(err => console.log(err));
+    }
+
+    order.save((err, result) => {
+      req.flash("success", "Thanh toán thành công!");
+      req.session.cart = null;
+      req.user.cart = {};
+      req.user.save();
+      res.redirect("/account");
+    });
+  } else {
+    req.flash("error", "Giỏ hàng rỗng!");
+    res.redirect("/account");
+  }
+};
+
+exports.mergeCart = (req, res, next) => {
+  if (req.user.cart != {} && req.user.cart) {
+    var cart = new Cart(req.session.cart ? req.session.cart : {});
+    cart = cart.addCart(req.user.cart);
+    req.session.cart = cart;
+    req.user.cart = cart;
+    req.user.save();
+  }
+  res.redirect("/");
+};
