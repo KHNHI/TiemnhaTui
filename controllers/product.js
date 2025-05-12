@@ -183,3 +183,79 @@ exports.getProducts = (req, res, next) => {
       console.log(err);
     });
 };
+exports.postNumItems = (req, res, next) => {
+  ITEM_PER_PAGE = parseInt(req.body.numItems);
+  res.redirect("back");
+};
+
+exports.getSearch = (req, res, next) => {
+  var cartProduct;
+  if (!req.session.cart) {
+    cartProduct = null;
+  } else {
+    var cart = new Cart(req.session.cart);
+    cartProduct = cart.generateArray();
+  }
+  searchText =
+    req.query.searchText !== undefined ? req.query.searchText : searchText;
+  const page = +req.query.page || 1;
+
+  Products.createIndexes({}).catch(err => {
+    console.log(err);
+  });
+  Products.find({
+    $text: { $search: searchText }
+  })
+    .countDocuments()
+    .then(numProduct => {
+      totalItems = numProduct;
+      return Products.find({
+        $text: { $search: searchText }
+      })
+        .skip((page - 1) * 12)
+        .limit(12);
+    })
+    .then(products => {
+      res.render("search-result", {
+        title: "Kết quả tìm kiếm cho " + searchText,
+        user: req.user,
+        searchProducts: products,
+        searchT: searchText,
+        currentPage: page,
+        hasNextPage: 12 * page < totalItems,
+        hasPreviousPage: page > 1,
+        nextPage: page + 1,
+        previousPage: page - 1,
+        lastPage: Math.ceil(totalItems / 12),
+        cartProduct: cartProduct
+      });
+    })
+    .catch(err => {
+      console.log(err);
+    });
+};
+
+exports.postComment = (req, res, next) => {
+  const prodId = req.params.productId;
+  var tname;
+  if (typeof req.user === "undefined") {
+    tname = req.body.inputName;
+  } else {
+    tname = req.user.username;
+  }
+  Products.findOne({
+    _id: prodId
+  }).then(product => {
+    var today = new Date();
+    product.comment.items.push({
+      title: req.body.inputTitle,
+      content: req.body.inputContent,
+      name: tname,
+      date: today,
+      star: req.body.rating
+    });
+    product.comment.total++;
+    product.save();
+  });
+  res.redirect("back");
+};
