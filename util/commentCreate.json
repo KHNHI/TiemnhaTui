@@ -1,7 +1,6 @@
 const mongoose = require("mongoose");
 const comment = require("../models/comment");
-const urlConnect = ``
-;
+const urlConnect = ``;
 
 //Connect to db
 mongoose.connect(urlConnect, { useNewUrlParser: true }, err => {
