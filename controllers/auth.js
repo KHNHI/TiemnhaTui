@@ -75,8 +75,8 @@ exports.getVerifyEmail = (req, res, next) => {
     var transporter = nodemailer.createTransport({
         service: "Gmail",
         auth: {
-            user: "nocodenolife2527@gmail.com",
-            pass: "password2527@"
+            user: "lengocthaovy1587@gmail.com",
+            pass: "wdgzzkkvvpcsafuj"
         }
     });
     Users.findOne({ username: req.user.username }).then(user => {
@@ -89,7 +89,7 @@ exports.getVerifyEmail = (req, res, next) => {
             subject: "Test",
             text: "text ne",
             html:
-                "<p>Cảm ơn đã đăng kí tài khoản của Bros shop. Mã kích hoạt của bạn là:</p>" +
+                "<p>Cảm ơn đã đăng kí tài khoản của Tiệm nhà Túi. Mã kích hoạt của bạn là:</p>" +
                 verification_token
         };
         transporter.sendMail(mainOptions, (err, info) => {
@@ -160,15 +160,15 @@ exports.postForgotPass = (req, res, next) => {
             var transporter = nodemailer.createTransport({
                 service: "Gmail",
                 auth: {
-                    user: "nocodenolife2527@gmail.com",
-                    pass: "password2527@"
+                    user: "lengocthaovy1587@gmail.com",
+                    pass: "wdgzzkkvvpcsafuj"
                 }
             });
             var tpass = randomstring.generate({
                 length: 6
             });
             var mainOptions = {
-                from: "Crepp so gud",
+                from: "TUI nè ",
                 to: email,
                 subject: "Test",
                 text: "text ne",
