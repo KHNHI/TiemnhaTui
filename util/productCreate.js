@@ -1,21 +1,20 @@
 const mongoose = require("mongoose");
 const Product = require("../models/product");
-const urlConnect = `
-`;
+const urlConnect = `mongodb+srv://lengocthaovy2435:a1Yn1PIRa9g4QBwi@dataexportcnpm.y2iwlud.mongodb.net/?retryWrites=true&w=majority&appName=DataExportCNPM`;
 
 // Connect to database
 mongoose.connect(urlConnect, { useNewUrlParser: true }, err => {
   if (err) throw err;
   console.log("Connect successfully!!");
-  
+
   var product = new Product({
     name: "Trang trí nữ bằng da",
     description: "Đôi khi có những thứ không ai biết nó là gì luôn",
     stock: 123,
     price: 444,
-    tags:["#vip","#pro","#cute"],
-    size: ["S","M"],
-    productType: { main: "Phụ Kiện", sub: "Trang Trí"},
+    tags: ["#vip", "#pro", "#cute"],
+    size: ["S", "M"],
+    productType: { main: "Phụ Kiện", sub: "Trang Trí" },
     color: ["Nâu"],
     pattern: "Trơn",
     images: [
@@ -27,7 +26,7 @@ mongoose.connect(urlConnect, { useNewUrlParser: true }, err => {
     materials: ["100% Da"]
   });
 
-  product.save(function(err) {
+  product.save(function (err) {
     if (err) throw err;
     console.log("Product successfully saved.");
   });
