@@ -25,6 +25,16 @@ exports.getIndexProducts = (req, res, next) => {
     cartProduct = cart.generateArray();
   }
 
+  if (process.env.USE_MEMORY_SESSION === "true") {
+    return res.render("index", {
+      title: "Trang chủ",
+      user: req.user,
+      trendings: [],
+      hots: [],
+      cartProduct: cartProduct
+    });
+  }
+
   Products.find()
     .limit(8)
     .then(products => {
@@ -39,10 +49,27 @@ exports.getIndexProducts = (req, res, next) => {
             hots: products2,
             cartProduct: cartProduct
           });
+        })
+        .catch(err => {
+          console.log(err);
+          res.render("index", {
+            title: "Trang chủ",
+            user: req.user,
+            trendings: [],
+            hots: [],
+            cartProduct: cartProduct
+          });
         });
     })
     .catch(err => {
       console.log(err);
+      res.render("index", {
+        title: "Trang chủ",
+        user: req.user,
+        trendings: [],
+        hots: [],
+        cartProduct: cartProduct
+      });
     });
 };
 

@@ -20,12 +20,25 @@ app.use(compression());
 mongoose.set('useCreateIndex', true);
 
 const urlConnect = process.env.DB;
+const useMemorySession = process.env.USE_MEMORY_SESSION === 'true';
+
+// In local mode without DB, fail queries fast instead of buffering indefinitely.
+if (useMemorySession) {
+  mongoose.set('bufferCommands', false);
+}
 
 // Connect to database
-mongoose.connect(urlConnect, { useNewUrlParser: true, useUnifiedTopology: true }, err => {
-  if (err) throw err;
-  console.log('Connect successfullyy!!');
-});
+if (!useMemorySession && urlConnect) {
+  mongoose.connect(urlConnect, { useNewUrlParser: true, useUnifiedTopology: true })
+    .then(() => {
+      console.log('Connect successfullyy!!');
+    })
+    .catch(err => {
+      console.error('MongoDB connection failed:', err.message);
+    });
+} else {
+  console.log('Running without MongoDB connection (local mode).');
+}
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
@@ -36,15 +49,25 @@ app.use(express.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(cookieParser());
 app.use(flash());
-app.use(
-  session({
-    secret: 'notsecret',
-    saveUninitialized: true,
-    resave: false,
-    store: new MongoDBStore({ uri: process.env.DB, collection: 'sessions' }),
-    cookie: { maxAge: 180 * 60 * 1000 }
-  })
-);
+
+const sessionConfig = {
+  secret: 'notsecret',
+  saveUninitialized: true,
+  resave: false,
+  cookie: { maxAge: 180 * 60 * 1000 }
+};
+
+if (!useMemorySession && urlConnect) {
+  const mongoStore = new MongoDBStore({ uri: urlConnect, collection: 'sessions' });
+  mongoStore.on('error', err => {
+    console.error('Session store error:', err.message);
+  });
+  sessionConfig.store = mongoStore;
+} else {
+  console.log('Using in-memory session store (local mode).');
+}
+
+app.use(session(sessionConfig));
 
 app.use((req, res, next) => {
   var cart = new Cart(req.session.cart ? req.session.cart : {});
